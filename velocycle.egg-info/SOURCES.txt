@@ -1,0 +1,17 @@
+README.md
+setup.py
+velocycle/__init__.py
+velocycle/angularspeed.py
+velocycle/cycle.py
+velocycle/phase_inference_guide.py
+velocycle/phase_inference_model.py
+velocycle/phases.py
+velocycle/plots.py
+velocycle/preprocessing.py
+velocycle/utils.py
+velocycle/velocity_inference_guide.py
+velocycle/velocity_inference_model.py
+velocycle.egg-info/PKG-INFO
+velocycle.egg-info/SOURCES.txt
+velocycle.egg-info/dependency_links.txt
+velocycle.egg-info/top_level.txt

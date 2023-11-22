@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Name: velocycle
+Version: 0.0.1
+Summary: Bayesian model for RNA velocity estimation of periodic manifolds
+Home-page: https://github.com/lamanno-epfl/velocycle
+Author: Alex Lederer
+Author-email: alex.lederer@epfl.ch
+Description-Content-Type: text/markdown
+
+# Cycles
+phase inference methods
