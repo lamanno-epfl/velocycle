@@ -3,6 +3,7 @@
 
 import numpy as np
 import torch
+from scipy.sparse import csr_matrix
 
 # Gene sets used for manifold-learning
 
@@ -503,3 +504,108 @@ def pack_direction(xy_pair):
     """
     _cos, _sin = xy_pair[..., 0], xy_pair[..., 1]
     return torch.atan2(_sin, _cos)
+
+def simulate_data(Nc=5000, Ng=500, omegas_to_test=[0.4]):
+    mv_means = np.array([0.4, 0.00, 0.0, 0.0, 2.0])
+    corr_matrix = np.array([[1.0, 0.05, 0.05, 0.05, 0.30], 
+                       [0.05, 1.0, 0.0, 0.0, 0.0], 
+                       [0.05, 0.0, 1.0, 0.0, 0.0], 
+                       [0.05, 0.0, 0.0, 1.0, 0.30], 
+                       [0.30, 0.0, 0.0, 0.30, 1.0]])
+
+    std_devs = np.array([1.2, 0.2, 0.2, 0.5, 1.0])
+    mv_cov_matrix = np.diag(std_devs) @ corr_matrix @ np.diag(std_devs)
+    
+    simulated_phis = torch.stack([torch.tensor(np.random.uniform(0, np.pi*2)) for i in range(Nc)])
+    simulated_ζ = torch.stack([utils.torch_basis(simulated_phis[i], der=0, kind="fourier", **dict(num_harmonics=1)).T for i in range(Nc)])
+    simulated_ζ_dϕ = utils.torch_basis(simulated_phis.squeeze(), der=1, kind="fourier", **dict(num_harmonics=1))
+
+    simulated_velo_parameters = torch.stack([pyro.sample("nu", dist.MultivariateNormal(loc=torch.tensor(mv_means).float().T, 
+                                                                                       covariance_matrix=torch.tensor(mv_cov_matrix).float())) for i in range(Ng)]).unsqueeze(-2)
+    
+    simulated_nu = simulated_velo_parameters[:, :, :3]
+    simulated_gammas = simulated_velo_parameters[:, :, 3]
+    simulated_betas = simulated_velo_parameters[:, :, 4]
+
+    simulated_ElogS = (simulated_nu * simulated_ζ).sum(-1)
+
+    gamma_alpha = 1.0
+    gamma_beta = 2.0
+    simulated_shape_inv = torch.stack([pyro.sample("shape_inv", dist.Gamma(gamma_alpha, gamma_beta)) for i in range(Ng)])
+
+    data_dict = {}
+    for curr_omega in omegas_to_test:
+        print("Simulating", curr_omega)
+        simulated_omega = torch.tensor(curr_omega).repeat(Nc).float()
+        simulated_ElogU = -simulated_betas + torch.log(torch.relu((simulated_nu * simulated_ζ_dϕ).sum(-1) * simulated_omega + torch.exp(simulated_gammas)) + 1e-5) + simulated_ElogS
+
+        simulatedS = torch.stack([pyro.sample("S", dist.GammaPoisson(1.0 / simulated_shape_inv, 1.0 / (simulated_shape_inv * torch.exp(simulated_ElogS[:, i])))) for i in range(Nc)]).T
+        simulatedU = torch.stack([pyro.sample("U", dist.GammaPoisson(1.0 / simulated_shape_inv, 1.0 / (simulated_shape_inv * torch.exp(simulated_ElogU[:, i])))) for i in range(Nc)]).T
+
+        data_dict[curr_omega] = {"simulatedS":simulatedS,
+                                 "simulatedU":simulatedU,
+                                 "simulated_ElogU":simulated_ElogU,
+                                 "simulated_omega":simulated_omega}
+
+    completeS = torch.hstack([data_dict[i]["simulatedS"] for i in omegas_to_test])
+    completeU = torch.hstack([data_dict[i]["simulatedU"] for i in omegas_to_test])
+
+    sim_data = sc.AnnData(completeS.numpy()).T
+    sim_data.layers["spliced"] = csr_matrix(completeS.numpy().T)
+    sim_data.layers["unspliced"] = csr_matrix(completeU.numpy().T)
+
+    batch = np.concatenate([np.repeat(str(curr_omega), Nc) for curr_omega in omegas_to_test])
+    sim_data.obs["batch"] = batch
+
+    completeElogU = torch.hstack([data_dict[i]["simulated_ElogU"] for i in omegas_to_test])
+    sim_data.layers["simulated_ElogU"] = csr_matrix(completeElogU.numpy().T)
+
+    complete_simulated_omega = torch.hstack([data_dict[i]["simulated_omega"] for i in omegas_to_test])
+    sim_data.obs["simulated_omega"] = complete_simulated_omega
+
+    simulated_ElogS_complete = torch.hstack([simulated_ElogS for i in range(0, len(omegas_to_test))])
+    sim_data.layers["simulated_ElogS"] = csr_matrix(simulated_ElogS_complete.numpy().T)
+
+    sim_data.var["simulated_shape_inv"] = simulated_shape_inv.numpy()
+    sim_data.obs["simulated_phis"] = np.hstack([simulated_phis.numpy() for i in range(0, len(omegas_to_test))])
+    sim_data.var["simulated_gammas"] = simulated_gammas.numpy()
+    sim_data.var["simulated_betas"] = simulated_betas.numpy()
+    sim_data.uns["simulated_ζ"] = np.vstack([simulated_ζ.numpy() for i in range(0, len(omegas_to_test))])
+    sim_data.uns["simulated_ζ_dφ"] = np.vstack([simulated_ζ_dφ.numpy() for i in range(0, len(omegas_to_test))])
+    sim_data.uns["simulated_nu"] = np.vstack([simulated_nu.numpy() for i in range(0, len(omegas_to_test))])
+
+    gene_names = ["G"+str(i).zfill(5) for i in range(0, Ng)]
+    sim_data.var.index = gene_names
+
+    cell_names = ["C"+str(i).zfill(5) for i in range(0, Nc)]
+    cell_names = np.stack([cell_names for i in range(0, len(omegas_to_test))]).flatten()
+    cell_names = ["Velo"+str(i).replace(".", "")+":"+j for i,j in zip(sim_data.obs["batch"], cell_names)]
+    sim_data.obs.index = cell_names
+    return sim_data
+
+def circular_corrcoef(x1, x2):
+    """
+    Returns the circular correlation coefficient between two numpy arrays.
+
+    Args:
+    x1, x2 : numpy array, shape (n,)
+        Two arrays containing circular data.
+
+    Returns:
+    circular_corr : float
+        The circular correlation coefficient.
+    """
+    
+    assert len(x1) == len(x2), "Input arrays must have the same length"
+    
+    # Convert inputs to unit circle coordinates
+    x1_unit = np.exp(1j * x1)
+    x2_unit = np.exp(1j * x2)
+
+    # Compute the product of x1 and the conjugate of x2
+    prod = x1_unit * np.conj(x2_unit)
+
+    # Compute circular correlation coefficient
+    circular_corr = np.abs(np.mean(prod))
+    
+    return circular_corr

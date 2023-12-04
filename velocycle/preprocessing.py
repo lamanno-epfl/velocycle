@@ -258,7 +258,7 @@ def preprocess_for_velocity_estimation(
         guide_fn = velocity_latent_variable_guide_LRMN
     elif gene_selection_model=="all":
         model_fn = velocity_latent_variable_model
-        guide_fn = velocity_latent_variable_guide2
+        guide_fn = velocity_latent_variable_guide
     elif gene_selection_model=="gmm":
         model_fn = velocity_latent_variable_model_gmm
         guide_fn = velocity_latent_variable_guide_gmm

@@ -25,10 +25,13 @@ def velocity_latent_variable_guide(mp):
     logγg_locs = pyro.param("logγg_locs", mp.μγ.detach().clone().to(device))
     logβg_locs = pyro.param("logβg_locs", mp.μβ.detach().clone().to(device))
 
+    logγg_scales = pyro.param("logγg_scales", mp.σγ.detach().clone().to(device), constraint=constraints.positive)
+    logβg_scales = pyro.param("logβg_scales", mp.σβ.detach().clone().to(device), constraint=constraints.positive)
+
     ν_locs = pyro.param("ν_locs", mp.μνg.detach().clone().to(device))
     ν_scales = pyro.param("ν_scales", mp.σνg.detach().clone().to(device), constraint=constraints.positive)
 
-    Δν_locs = pyro.param("Δν_locs", (torch.ones((mp.Nb, 1, 1, mp.Ng, 1), device=device) * mp.μΔν).to(device))
+    Δν_locs = pyro.param("Δν_locs", torch.ones((mp.Nb, 1, 1, mp.Ng, 1), device=device) * mp.μΔν.to(device))
     ϕxy_locs = pyro.param("ϕxy_locs", mp.φxy_prior.detach().clone().to(device))
 
     νω_locs = pyro.param("νω_locs", mp.μνω.detach().clone().to(device))
@@ -38,9 +41,9 @@ def velocity_latent_variable_guide(mp):
         shape_inv_locs = pyro.param("shape_inv_locs", (torch.ones((mp.Ng, 1), device=device) * mp.gamma_alpha/mp.gamma_beta).to(device), constraint=constraints.positive)
 
     with gene_plate:
-        logγg = pyro.sample("logγg", dist.Delta(logγg_locs))
-        logβg = pyro.sample("logβg", dist.Delta(logβg_locs))
-
+        logγg = pyro.sample("logγg", dist.Normal(logγg_locs, logγg_scales))
+        logβg = pyro.sample("logβg", dist.Normal(logβg_locs, logβg_scales))
+        
         ν = pyro.sample("ν", dist.Normal(ν_locs, ν_scales).to_event(1))
 
         with batches_plate:

@@ -326,13 +326,13 @@ def velocity_latent_variable_model(mp, init_loc_fn=init_to_mean(fallback=init_to
     
     pyro.deterministic("ζω", ζω)
 
-    ElogS = torch.einsum("gch,ch->gc", ν, ζ) + torch.einsum("bxhgc,bxhgc->gc", mp.Db, Δν) + mp.count_factor
+    ElogS = torch.einsum("...gch,...ch->gc", ν, ζ) + torch.einsum("bxhgc,bxhgc->gc", mp.Db, Δν) + mp.count_factor
     pyro.deterministic("ElogS", ElogS)
     
-    ω = torch.einsum("xhgc,hc,xhgc->gc", [νω, ζω, mp.D])
+    ω = torch.einsum("...xhgc,hc...,xhgc->gc", [νω, ζω, mp.D])
     pyro.deterministic("ω", ω)
     
-    ElogU = -logβg + torch.log(torch.relu(torch.einsum("gch,ch->gc", ν, ζ_dϕ) * ω + γg) + 1e-5) + ElogS
+    ElogU = -logβg + torch.log(torch.relu(torch.einsum("...gch,...ch->gc", ν, ζ_dϕ) * ω + γg) + 1e-5) + ElogS
     pyro.deterministic("ElogU", ElogU)
 
     # Add noise to the expectation
@@ -353,7 +353,7 @@ def velocity_latent_variable_model(mp, init_loc_fn=init_to_mean(fallback=init_to
             pyro.sample("U", dist.GammaPoisson(1.0 / shape_inv, 1.0 / (shape_inv * torch.exp(ElogU))), obs=mp.U.to(device))
     else:
         raise ValueError(f"{mp.noisemodel} not allowed")
-
+        
 def velocity_latent_variable_model_LRMN(mp, init_loc_fn=init_to_mean(fallback=init_to_median(num_samples=50))):
     """
     Defines the low-rank multivariate normal (LRMN) variant of the velocity latent variable model.
