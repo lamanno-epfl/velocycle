@@ -31,7 +31,9 @@ def velocity_latent_variable_guide(mp):
     ν_locs = pyro.param("ν_locs", mp.μνg.detach().clone().to(device))
     ν_scales = pyro.param("ν_scales", mp.σνg.detach().clone().to(device), constraint=constraints.positive)
 
-    Δν_locs = pyro.param("Δν_locs", torch.ones((mp.Nb, 1, 1, mp.Ng, 1), device=device) * mp.μΔν.to(device))
+    if mp.with_delta_nu:
+        Δν_locs = pyro.param("Δν_locs", torch.ones((mp.Nb, 1, 1, mp.Ng, 1), device=device) * mp.μΔν.to(device))
+    
     ϕxy_locs = pyro.param("ϕxy_locs", mp.φxy_prior.detach().clone().to(device))
 
     νω_locs = pyro.param("νω_locs", mp.μνω.detach().clone().to(device))
@@ -46,8 +48,9 @@ def velocity_latent_variable_guide(mp):
         
         ν = pyro.sample("ν", dist.Normal(ν_locs, ν_scales).to_event(1))
 
-        with batches_plate:
-            Δν = pyro.sample("Δν", dist.Delta(Δν_locs))
+        if mp.with_delta_nu:
+            with batches_plate:
+                Δν = pyro.sample("Δν", dist.Delta(Δν_locs))
 
         if mp.noisemodel == "NegativeBinomial":
             shape_inv = pyro.sample("shape_inv", dist.Delta(shape_inv_locs))
@@ -75,7 +78,8 @@ def velocity_latent_variable_guide_LRMN(mp):
     ν_locs = pyro.param("ν_locs", mp.μνg.detach().clone())
     ν_scales = pyro.param("ν_scales", mp.σνg.detach().clone(), constraint=constraints.positive)
     
-    Δν_locs = pyro.param("Δν_locs", torch.ones((mp.Nb, 1, 1, mp.Ng, 1), device=device) * mp.μΔν.to(device))
+    if mp.with_delta_nu:
+        Δν_locs = pyro.param("Δν_locs", torch.ones((mp.Nb, 1, 1, mp.Ng, 1), device=device) * mp.μΔν.to(device))
     
     ϕxy_locs = pyro.param("ϕxy_locs", mp.φxy_prior.detach().clone())
     
@@ -83,12 +87,11 @@ def velocity_latent_variable_guide_LRMN(mp):
     logβg_scales = pyro.param("logβg_scales", mp.σβ.detach().clone(), constraint=constraints.positive)
     
     lrmv_dims = mp.Ng + (mp.Nhω*mp.Nx)
-    
     loc = pyro.param("loc", torch.hstack([mp.μγ.squeeze().detach().clone(), mp.μνω.squeeze().detach().clone().flatten()]))
     cov_factor = pyro.param("cov_factor", torch.clip(torch.normal(torch.zeros((lrmv_dims, mp.rho_rank), device=device), 
                                                                   torch.ones((lrmv_dims, mp.rho_rank), device=device)*0.02), min=0, max=None,).to(device), constraint=constraints.positive)
     cov_diag = pyro.param("cov_diag", (torch.hstack([mp.σγ.squeeze().detach().clone(), mp.σνω.squeeze().detach().clone().flatten()])**2).to(device), constraint=constraints.positive)
-
+    
     LRMV_X = dist.LowRankMultivariateNormal(loc=loc,
                                    cov_factor = cov_factor,
                                    cov_diag = cov_diag).rsample()
@@ -105,8 +108,9 @@ def velocity_latent_variable_guide_LRMN(mp):
         rho_real = pyro.sample("rho_real", dist.Delta(rho_real_loc.unsqueeze(-1)))
         rho = torch.sigmoid(rho_real/mp.rho_scale) * 1.998 - 0.999
         
-        with batches_plate:
-            Δν = pyro.sample("Δν", dist.Delta(Δν_locs.to(device)))
+        if mp.with_delta_nu:
+            with batches_plate:
+                Δν = pyro.sample("Δν", dist.Delta(Δν_locs.to(device)))
             
         if mp.noisemodel == "NegativeBinomial":
             shape_inv = pyro.sample("shape_inv", dist.Delta(shape_inv_locs))

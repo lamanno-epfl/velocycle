@@ -17,13 +17,13 @@ from pyro.infer.autoguide import init_to_mean, init_to_median
 import pyro.distributions as dist
 
 # VeloCycle imports
-from .plots import live_plot
+from .plots import live_plot, pplot
 from .cycle import Cycle
 from .phases import Phases
 from .utils import (
     pack_direction,
     torch_fourier_basis,
-    torch_basis
+    torch_basis,
 )
 
 def invert_direction(cycle, phases):
@@ -106,7 +106,7 @@ class PhaseFitModel:
     - num_samples (int, optional): Number of samples for posterior computation. Defaults to 500.
     - n_per_bin (int, optional): Number of samples per bin for posterior computations. Defaults to 50.
     """
-    def __init__(self, metaparams, condition_on={}, early_exit=True, get_posterior=True, num_samples=500, n_per_bin=50):
+    def __init__(self, metaparams, condition_on={}, early_exit=False, get_posterior=True, num_samples=500, n_per_bin=50):
         if len(condition_on)==0:
             self.model = metaparams.model_fn
             self.guide = metaparams.guide_fn
@@ -178,7 +178,7 @@ class PhaseFitModel:
                 early_exit_bool=True
 
         self.losses = losses
-
+        
         self.phis_pyro = pyro.param("ϕxy_locs").detach().squeeze().cpu().numpy().T
         self.fourier_coef = pyro.param("ν_locs").detach().squeeze().cpu().numpy().T
         self.fourier_coef_sd = pyro.param("ν_scales").detach().squeeze().cpu().numpy().T
@@ -187,7 +187,8 @@ class PhaseFitModel:
         new_phase = Phases.from_array(self.phis_pyro, cell_names=self.metaparams.phase_prior.phi_xy.columns)
         
         self.disp_pyro = pyro.param("shape_inv_locs").detach().squeeze().cpu().numpy().T
-        self.delta_nus = pyro.param("Δν_locs").detach().unsqueeze(-3).unsqueeze(-4).float().cpu().numpy()
+        if self.metaparams.with_delta_nu:
+            self.delta_nus = pyro.param("Δν_locs").detach().unsqueeze(-3).unsqueeze(-4).float().cpu().numpy()
         
         self.cycle_pyro = new_cycle
         self.phase_pyro = new_phase
@@ -216,9 +217,15 @@ class PhaseFitModel:
                 phase_pps_cpu_dict_list = []
                 for curr_bin in range(nbins):
                     if (self.metaparams.gene_selection_model=="lba"):
-                        phase_pps = self.sample_posterior(num_samples=n_per_bin, rs=['ν', 'Δν', 'ϕxy', 'shape_inv', 'ϕ', 'ζ', 'periodic', 'periodic_prob'])
+                        if self.metaparams.with_delta_nu:
+                            phase_pps = self.sample_posterior(num_samples=n_per_bin, rs=['ν', 'Δν', 'ϕxy', 'shape_inv', 'ϕ', 'ζ', 'periodic', 'periodic_prob'])
+                        else:
+                            phase_pps = self.sample_posterior(num_samples=n_per_bin, rs=['ν', 'ϕxy', 'shape_inv', 'ϕ', 'ζ', 'periodic', 'periodic_prob'])
                     else:
-                        phase_pps = self.sample_posterior(num_samples=n_per_bin, rs=['ν', 'Δν', 'ϕxy', 'shape_inv', 'ϕ', 'ζ'])
+                        if self.metaparams.with_delta_nu:
+                            phase_pps = self.sample_posterior(num_samples=n_per_bin, rs=['ν', 'Δν', 'ϕxy', 'shape_inv', 'ϕ', 'ζ'])
+                        else:
+                            phase_pps = self.sample_posterior(num_samples=n_per_bin, rs=['ν', 'ϕxy', 'shape_inv', 'ϕ', 'ζ'])
                     phase_pps_cpu = {k: v.cpu() for k, v in phase_pps.items()}  # Move samples to CPU
                 
                     del phase_pps
@@ -232,10 +239,18 @@ class PhaseFitModel:
                     phase_pps_cpu_full[k] = concat_pps_tensor
 
                 ν = pyro.param("ν_locs").detach().cpu()
-                Δν = pyro.param("Δν_locs").detach().cpu()
+                if self.metaparams.with_delta_nu:
+                    Δν = pyro.param("Δν_locs").detach().cpu()
+                
                 ζ = torch_fourier_basis(self.phase_pyro.phis, num_harmonics=self.metaparams.num_harmonics_S, der=0, device=torch.device("cpu")) 
-                ElogS = torch.einsum("...gch,ch->gc", ν, ζ) + torch.einsum("bgc,bgc->gc", self.metaparams.Db.to(torch.device("cpu")), Δν) + self.metaparams.count_factor.to(torch.device("cpu"))
-                ElogS2 = torch.einsum("...gch,ch->gc", ν, ζ) + torch.einsum("bgc,bgc->gc", self.metaparams.Db.to(torch.device("cpu")), Δν) + self.metaparams_avg.count_factor.to(torch.device("cpu"))
+                
+                if self.metaparams.with_delta_nu:
+                    ElogS = torch.einsum("...gch,ch->gc", ν, ζ) + torch.einsum("bgc,bgc->gc", self.metaparams.Db.to(torch.device("cpu")), Δν) + self.metaparams.count_factor.to(torch.device("cpu"))
+                    ElogS2 = torch.einsum("...gch,ch->gc", ν, ζ) + torch.einsum("bgc,bgc->gc", self.metaparams.Db.to(torch.device("cpu")), Δν) + self.metaparams_avg.count_factor.to(torch.device("cpu"))
+
+                else:
+                    ElogS = torch.einsum("...gch,ch->gc", ν, ζ) + self.metaparams.count_factor.to(torch.device("cpu"))
+                    ElogS2 = torch.einsum("...gch,ch->gc", ν, ζ) + self.metaparams_avg.count_factor.to(torch.device("cpu"))
 
                 phase_pps_cpu_full["ElogS"] = ElogS.squeeze()
                 phase_pps_cpu_full["ElogS2"] = ElogS2.squeeze()
@@ -314,7 +329,10 @@ class PhaseFitModel:
         the guide associated with the object, which is essential in variational inference.
         """
         return self._check_model(self.guide, self.metaparams)       
-    
+
+    def polar_plot(self, show_names=False, show_markers=True, species="Human"):
+        pplot(self, show_names=False, show_markers=True, species=species)
+        
 def phase_latent_variable_model(mp):
     """
     Defines the Pyro model for a phase latent variable.
@@ -346,8 +364,11 @@ def phase_latent_variable_model(mp):
     pyro.deterministic("ϕ", ϕ)
     pyro.deterministic("ζ", ζ)
 
-    ElogS = torch.einsum("...gch,ch->gc", ν, ζ) + torch.einsum("bgc,bgc->gc", mp.Db.to(device), Δν) + mp.count_factor.to(device)
-        
+    if mp.with_delta_nu:
+        ElogS = torch.einsum("...gch,ch->gc", ν, ζ) + torch.einsum("bgc,bgc->gc", mp.Db.to(device), Δν) + mp.count_factor.to(device)
+    else:
+        ElogS = torch.einsum("...gch,ch->gc", ν, ζ) + mp.count_factor.to(device)
+           
     pyro.deterministic("ElogS", ElogS)
 
     # Add noise to the expectation

@@ -57,7 +57,7 @@ class VelocityFitModel:
     - num_samples (int, optional): Number of samples for posterior computation. Defaults to 500.
     - n_per_bin (int, optional): Number of samples per bin for posterior computations. Defaults to 50.
     """
-    def __init__(self, metaparams, condition_on={}, early_exit=True, get_posterior=True, num_samples=500, n_per_bin=50):
+    def __init__(self, metaparams, condition_on={}, early_exit=False, get_posterior=True, num_samples=500, n_per_bin=50):
         if len(condition_on)==0:
             self.model = metaparams.model_fn
             self.guide = metaparams.guide_fn
@@ -119,10 +119,18 @@ class VelocityFitModel:
                     logging.info("Elbo loss: {}".format(loss))
 
                     if model_type=="lrmn":
-                        velo_pps = self.sample_posterior(num_samples=50, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'Δν', 'ϕxy', 'ϕ', 
+                        if self.metaparams.with_delta_nu:
+                            velo_pps = self.sample_posterior(num_samples=n_per_bin, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'Δν', 'ϕxy', 'ϕ', 
+                                                                                'ζ', 'ζ_dϕ', 'ζω', 'ω', 'shape_inv', 'rho_real'])
+                        else: 
+                            velo_pps = self.sample_posterior(num_samples=n_per_bin, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'ϕxy', 'ϕ', 
                                                                                 'ζ', 'ζ_dϕ', 'ζω', 'ω', 'shape_inv', 'rho_real'])
                     else:
-                        velo_pps = self.sample_posterior(num_samples=50, rs=['logγg', 'logβg', 'νω', 'γg', 'ν' 'Δν', 'ϕxy', 'ϕ', 
+                        if self.metaparams.with_delta_nu:
+                            velo_pps = self.sample_posterior(num_samples=n_per_bin, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'Δν', 'ϕxy', 'ϕ', 
+                                                                                'ζ', 'ζ_dϕ', 'ζω', 'ω', 'shape_inv'])
+                        else:
+                            velo_pps = self.sample_posterior(num_samples=n_per_bin, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'ϕxy', 'ϕ', 
                                                                                 'ζ', 'ζ_dϕ', 'ζω', 'ω', 'shape_inv'])
                     velo_pps_cpu = {k: v.cpu() for k, v in velo_pps.items()}  # Move samples to CPU
                     intermediate_output.append(velo_pps_cpu)
@@ -148,7 +156,8 @@ class VelocityFitModel:
         new_phase = Phases.from_array(self.phis_pyro, cell_names=self.metaparams.phase_prior.phi_xy.columns)
             
         self.disp_pyro = pyro.param("shape_inv_locs").detach().squeeze().cpu().numpy().T
-        self.delta_nus = pyro.param("Δν_locs").detach().unsqueeze(-3).unsqueeze(-4).float().cpu().numpy()
+        if self.metaparams.with_delta_nu:
+            self.delta_nus = pyro.param("Δν_locs").detach().unsqueeze(-3).unsqueeze(-4).float().cpu().numpy()
 
         model_type = self.metaparams.model_type
         if model_type != "lrmn":
@@ -195,10 +204,18 @@ class VelocityFitModel:
                 velo_pps_cpu_dict_list = []
                 for curr_bin in range(nbins):
                     if model_type=="lrmn":
-                        velo_pps = self.sample_posterior(num_samples=n_per_bin, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'Δν', 'ϕxy', 'ϕ', 
+                        if self.metaparams.with_delta_nu:
+                            velo_pps = self.sample_posterior(num_samples=n_per_bin, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'Δν', 'ϕxy', 'ϕ', 
+                                                                                'ζ', 'ζ_dϕ', 'ζω', 'ω', 'shape_inv', 'rho_real'])
+                        else: 
+                            velo_pps = self.sample_posterior(num_samples=n_per_bin, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'ϕxy', 'ϕ', 
                                                                                 'ζ', 'ζ_dϕ', 'ζω', 'ω', 'shape_inv', 'rho_real'])
                     else:
-                        velo_pps = self.sample_posterior(num_samples=n_per_bin, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'Δν', 'ϕxy', 'ϕ', 
+                        if self.metaparams.with_delta_nu:
+                            velo_pps = self.sample_posterior(num_samples=n_per_bin, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'Δν', 'ϕxy', 'ϕ', 
+                                                                                'ζ', 'ζ_dϕ', 'ζω', 'ω', 'shape_inv'])
+                        else:
+                            velo_pps = self.sample_posterior(num_samples=n_per_bin, rs=['logγg', 'logβg', 'νω', 'γg', 'ν', 'ϕxy', 'ϕ', 
                                                                                 'ζ', 'ζ_dϕ', 'ζω', 'ω', 'shape_inv'])
                     velo_pps_cpu = {k: v.cpu() for k, v in velo_pps.items()}  # Move samples to CPU
                 
@@ -212,10 +229,17 @@ class VelocityFitModel:
                     velo_pps_cpu_full[k] = concat_pps_tensor
                 
                 ν = pyro.param("ν_locs").detach().cpu()
-                Δν = pyro.param("Δν_locs").detach().cpu()
+                if self.metaparams.with_delta_nu:
+                    Δν = pyro.param("Δν_locs").detach().cpu()
+                
                 ζ = torch_basis(self.phase_pyro.phis, der=0, kind=self.metaparams.basis_kind, device=torch.device("cpu"), **self.metaparams.kwargsζ)
-                ElogS = torch.einsum("...gch,ch->gc", ν, ζ) + torch.einsum("bxhgc,bxhgc->gc", self.metaparams.Db.to(torch.device("cpu")), Δν) + self.metaparams.count_factor.to(torch.device("cpu"))
-                ElogS2 = torch.einsum("...gch,ch->gc", ν, ζ) + torch.einsum("bxhgc,bxhgc->gc", self.metaparams.Db.to(torch.device("cpu")), Δν) + self.metaparams_avg.count_factor.to(torch.device("cpu"))
+                
+                if self.metaparams.with_delta_nu:
+                    ElogS = torch.einsum("...gch,ch->gc", ν, ζ) + torch.einsum("bxhgc,bxhgc->gc", self.metaparams.Db.to(torch.device("cpu")), Δν) + self.metaparams.count_factor.to(torch.device("cpu"))
+                    ElogS2 = torch.einsum("...gch,ch->gc", ν, ζ) + torch.einsum("bxhgc,bxhgc->gc", self.metaparams.Db.to(torch.device("cpu")), Δν) + self.metaparams_avg.count_factor.to(torch.device("cpu"))
+                else:
+                    ElogS = torch.einsum("...gch,ch->gc", ν, ζ) + self.metaparams.count_factor.to(torch.device("cpu"))
+                    ElogS2 = torch.einsum("...gch,ch->gc", ν, ζ) + self.metaparams_avg.count_factor.to(torch.device("cpu"))
                 
                 ζ_dϕ = torch_basis(self.phase_pyro.phis, der=1, kind=self.metaparams.basis_kind, device=torch.device("cpu"), **self.metaparams.kwargsζ_dϕ)
                 γg = velo_pps_cpu_full["γg"].mean(0).squeeze().cpu().unsqueeze(-1)
@@ -240,7 +264,7 @@ class VelocityFitModel:
                
                 new_speed = AngularSpeed.from_array(condition_names=self.metaparams.speed_prior.conditions,
                                                 means_array=self.velocity_coef.squeeze(),
-                                                stds_array=np.ones(self.velocity_coef.squeeze().shape),
+                                                stds_array=self.posterior["νω"].std(0).float().cpu().squeeze().numpy(),
                                                 Nhω=self.metaparams.Nhω)
                 self.speed_pyro = new_speed
             
@@ -298,8 +322,9 @@ def velocity_latent_variable_model(mp, init_loc_fn=init_to_mean(fallback=init_to
         pyro.deterministic("γg", γg)
         ν = pyro.sample("ν", dist.Normal(mp.μνg.to(device), mp.σνg.to(device)).to_event(1))
         
-        with batches_plate:
-            Δν = pyro.sample("Δν", dist.Normal(torch.tensor(0., device=device), torch.tensor(0.01, device=device)))
+        if mp.with_delta_nu:
+            with batches_plate:
+                Δν = pyro.sample("Δν", dist.Normal(torch.tensor(0., device=device), torch.tensor(0.01, device=device)))
     
     # Build gene harmonics
     if mp.basis_kind == "fourier":
@@ -326,7 +351,10 @@ def velocity_latent_variable_model(mp, init_loc_fn=init_to_mean(fallback=init_to
     
     pyro.deterministic("ζω", ζω)
 
-    ElogS = torch.einsum("...gch,...ch->gc", ν, ζ) + torch.einsum("bxhgc,bxhgc->gc", mp.Db, Δν) + mp.count_factor
+    if mp.with_delta_nu:
+        ElogS = torch.einsum("...gch,...ch->gc", ν, ζ) + torch.einsum("bxhgc,bxhgc->gc", mp.Db, Δν) + mp.count_factor
+    else:
+        ElogS = torch.einsum("...gch,...ch->gc", ν, ζ) + mp.count_factor
     pyro.deterministic("ElogS", ElogS)
     
     ω = torch.einsum("...xhgc,hc...,xhgc->gc", [νω, ζω, mp.D])
@@ -353,7 +381,7 @@ def velocity_latent_variable_model(mp, init_loc_fn=init_to_mean(fallback=init_to
             pyro.sample("U", dist.GammaPoisson(1.0 / shape_inv, 1.0 / (shape_inv * torch.exp(ElogU))), obs=mp.U.to(device))
     else:
         raise ValueError(f"{mp.noisemodel} not allowed")
-        
+
 def velocity_latent_variable_model_LRMN(mp, init_loc_fn=init_to_mean(fallback=init_to_median(num_samples=50))):
     """
     Defines the low-rank multivariate normal (LRMN) variant of the velocity latent variable model.
@@ -378,8 +406,9 @@ def velocity_latent_variable_model_LRMN(mp, init_loc_fn=init_to_mean(fallback=in
         pyro.deterministic("γg", γg)
         ν = pyro.sample("ν", dist.Normal(mp.μνg.to(device), mp.σνg.to(device)).to_event(1))
         
-        with batches_plate:
-            Δν = pyro.sample("Δν", dist.Normal(torch.tensor(0.0, device=device), torch.tensor(0.01, device=device)))
+        if mp.with_delta_nu:
+            with batches_plate:
+                Δν = pyro.sample("Δν", dist.Normal(torch.tensor(0.0, device=device), torch.tensor(0.01, device=device)))
     
     # Build gene harmonics
     if mp.basis_kind == "fourier":
@@ -390,7 +419,7 @@ def velocity_latent_variable_model_LRMN(mp, init_loc_fn=init_to_mean(fallback=in
     else:
         with cell_plate:
             ϕ = pyro.sample("ϕ", dist.Uniform(0, 2*mp.pi))
-    
+
     ζ = torch_basis(ϕ, der=0, kind=mp.basis_kind, device=device, **mp.kwargsζ)
     ζ_dϕ = torch_basis(ϕ, der=1, kind=mp.basis_kind, device=device, **mp.kwargsζ_dϕ)
 
@@ -406,8 +435,10 @@ def velocity_latent_variable_model_LRMN(mp, init_loc_fn=init_to_mean(fallback=in
     
     pyro.deterministic("ζω", ζω)
     
-    ElogS = torch.einsum("...gch,...ch->gc", ν, ζ) + torch.einsum("bxhgc,bxhgc->gc", mp.Db, Δν) + mp.count_factor
-    
+    if mp.with_delta_nu:
+        ElogS = torch.einsum("...gch,...ch->gc", ν, ζ) + torch.einsum("bxhgc,bxhgc->gc", mp.Db, Δν) + mp.count_factor
+    else:
+        ElogS = torch.einsum("...gch,...ch->gc", ν, ζ) + mp.count_factor
     pyro.deterministic("ElogS", ElogS)
     
     ω = torch.einsum("...xhgc,hc...,xhgc->gc", [νω, ζω, mp.D])

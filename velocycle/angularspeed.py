@@ -335,7 +335,7 @@ class AngularSpeed:
         μω0 = means
         σω0 = stds
         μωi = 0.0
-        σωi = 0.01
+        σωi = 0.05
         μνω = torch.Tensor([μω0,] + [μωi]*(Nhω-1))
         σνω = torch.Tensor([σω0] + [σωi]*(Nhω-1))
         μνω = μνω.repeat(len(condition_names), 1).T
