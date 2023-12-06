@@ -1,4 +1,4 @@
-# velocycle
+# VeloCycle
 
 Manifold-constrained variational inference for RNA velocity of the cell cycle. This is the repository for the VeloCycle framework. Installation instructions and tutorials can be found below.
 
@@ -39,7 +39,7 @@ For notebooks and data files not used in the tutorials included in this repo, bu
 
 ## Citation
 
-The preprint for VeloCycle can be found on bioRxiv:
+The preprint for VeloCycle will be available on bioRxiv soon:
 
 [Statistical inference with a manifold-constrained RNA velocity model uncovers cell cycle speed modulations]()
 
