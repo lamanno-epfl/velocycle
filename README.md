@@ -30,7 +30,7 @@ You may need to install git first:
 
 ## Release notes
 
-This is the initial release of VeloCycle corresponding to [Lederer et al. 2023](). These software are still under continuous development.
+This is the initial release of VeloCycle corresponding to the upcoming preprint [Lederer et al. 2023](). These software are still under continuous development.
 
 ## Contact
 
@@ -43,12 +43,4 @@ For notebooks and data files not used in the tutorials included in this repo, bu
 
 ## Citation
 
-The preprint for VeloCycle will be available on bioRxiv soon:
-
-[Statistical inference with a manifold-constrained RNA velocity model uncovers cell cycle speed modulations]()
-
-To cite in your work, please use the citation below:
-
-```
-Lederer, A.R., Leonardi, M., Talamanca, L., Herrera, A., Droin, C., Khven, I., Carvalho, Hugo J.F., Valente, A., Dominguez Mantes, A., Mulet Arabi, P., Pinello, L., Naef, F., La Manno, G. Statistical inference with a manifold-constrained RNA velocity model uncovers cell cycle speed modulations. 2023.
-```
+Coming soon!
