@@ -12,11 +12,15 @@ You need to have Python 3.10 or newer installed.
 
 We suggest installing VeloCycle in a separate conda environment, which for example can be created with the command:
 
-```conda create --name velocycle_env python==3.10.9```
+```bash
+conda create --name velocycle_env python==3.10.9
+```
 
 You will probably need to install git next:
 
-```conda install git```
+```bash
+conda install git
+```
 
 1. Install the latest release on PyPI:
 
