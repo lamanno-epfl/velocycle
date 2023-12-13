@@ -22,6 +22,8 @@ You will probably need to install git next:
 conda install git
 ```
 
+Then you can install VeloCycle using one of the following two approaches:
+
 1. Install the latest release on PyPI:
 
 ```bash
