@@ -1,3 +1,4 @@
+LICENSE.md
 README.md
 setup.py
 velocycle/__init__.py
@@ -14,4 +15,5 @@ velocycle/velocity_inference_model.py
 velocycle.egg-info/PKG-INFO
 velocycle.egg-info/SOURCES.txt
 velocycle.egg-info/dependency_links.txt
+velocycle.egg-info/requires.txt
 velocycle.egg-info/top_level.txt
