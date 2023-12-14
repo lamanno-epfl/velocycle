@@ -8,7 +8,7 @@ Please refer to the installation instructions below as well as the [tutorials]()
 
 ## Installation
 
-You need to have Python 3.10 or newer installed.
+You need to have Python 3.10.9 or newer installed.
 
 We suggest installing VeloCycle in a separate conda environment, which for example can be created with the command:
 
