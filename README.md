@@ -4,7 +4,7 @@ Manifold-constrained variational inference for RNA velocity of the cell cycle. T
 
 ## Getting started
 
-Please refer to the installation instructions below as well as the [tutorials](https://github.com/lamanno-epfl/velocycle/tree/main/tutorials) contained in this repo.
+Please refer to the installation instructions to install VeloCycle. Once you are ready to begin exploring the package, please refer to the [tutorials](https://github.com/lamanno-epfl/velocycle/tree/main/tutorials) contained in this repo.
 
 ## Installation
 
@@ -43,12 +43,11 @@ This is the initial release of VeloCycle corresponding to an upcoming preprint. 
 ## Contact
 
 For questions and help requests, you can reach out to [Alex Lederer](mailto:alex.lederer@epfl.ch) and [Gioele La Manno](mailto:gioele.lamanno@epfl.ch). We are happy to hear your feedback and comments!
-If you found a bug, please use the [issue tracker](https://github.com/lamanno-epfl/velocycle/issues).
 
 ## Additional materials
 
-For notebooks and data files not used in the tutorials included in this repo, but used in the original publication, please see the following [Zenodo]() page and [GEO](), both of which are coming soon!.
+For notebooks and data files not used in the tutorials included in this repo, but used in the original publication, please see the following [Google Drive](https://drive.google.com/drive/folders/1G_VPLpD8trPBZ8F8h7cBzcPPkKPn2Fik?usp=drive_link) folder and [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE250148). In the future, files will be transferred from the Google Drive to Zenodo.
 
 ## Citation
 
-Coming soon!
+Coming soon! In the meantime, please contact the authors if you would like to cite our work.
