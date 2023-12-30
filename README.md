@@ -4,11 +4,11 @@ Manifold-constrained variational inference for RNA velocity of the cell cycle. T
 
 ## Getting started
 
-Please refer to the installation instructions to install VeloCycle. Once you are ready to begin exploring the package, please refer to the [tutorials](https://github.com/lamanno-epfl/velocycle/tree/main/tutorials) contained in this repo.
+Please refer to the installation instructions to install VeloCycle. Once you are ready to begin exploring the package, please refer to the [tutorials](https://github.com/lamanno-epfl/velocycle/tree/main/tutorials) contained in this repo. The HTML versions of each tutorial show the expected output of running VeloCycle as well as expected runtimes obtained using a Macbook Pro 2019 edition (faster runtimes will be achieved on newer computers or when using GPUs).
 
 ## Installation
 
-You need to have Python 3.8 or newer installed.
+You need to have Python 3.8 or newer installed. All other package versions required are indicated in the requirements.txt file in this repo. Installation of VeloCycle should take only a few minutes on a standard operating system.
 
 We suggest installing VeloCycle in a separate conda environment, which for example can be created with the command:
 
