@@ -38,7 +38,11 @@ pip install git+https://github.com/lamanno-epfl/velocycle.git@main
 
 ## Release notes
 
-This is the initial release of VeloCycle corresponding to an upcoming preprint. These software are still under continuous development.
+This is the initial release of VeloCycle corresponding to our preprint: "Statistical inference with a manifold-constrained RNA velocity model uncovers cell cycle speed modulations". 
+
+Link: https://www.biorxiv.org/content/10.1101/2024.01.18.576093v1
+
+These software are still under continuous development.
 
 ## Contact
 
@@ -50,4 +54,4 @@ For notebooks and data files not used in the tutorials included in this repo, bu
 
 ## Citation
 
-Coming soon! In the meantime, please contact the authors if you would like to cite our work.
+Lederer, A. R., Leonardi, M., Talamanca, L., Herrera, A., Droin, C., Khven, I., Carvalho, H. J. F., Valente, A., Dominguez Mantes, A., Mulet Arabí, P., Pinello, L., Naef, F., & La Manno, G. (2024). Statistical inference with a manifold-constrained RNA velocity model uncovers cell cycle speed modulations. In bioRxiv. https://doi.org/10.1101/2024.01.18.576093
