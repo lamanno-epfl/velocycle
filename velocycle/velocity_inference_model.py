@@ -97,6 +97,11 @@ class VelocityFitModel:
         early exit based on convergence criteria, storing intermediate outputs, and verbose logging. Post-fit, it updates 
         the model's attributes with results and posterior distributions.
         """
+        if (self.metaparams.Ng < 50) & (self.metaparams.Nc < 500):
+            print("USER WARNING: the number of genes is below the recommended number for reliable velocity-learning.")
+        if (self.metaparams.Ng < 350) & (self.metaparams.Nc < 50):
+            print("USER WARNING: the number of cells is below the recommended number for reliable velocity-learning.")
+        
         # We call the guide here so that it's in the same namespace
         if self.guide is None:
             self.guide = AutoNormal(
