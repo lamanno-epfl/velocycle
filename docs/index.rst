@@ -1,7 +1,7 @@
 Welcome to VeloCycle's documentation!
 ===================================
 
-**VeloCycle** (/lu'make/) is a Python library for manifold-constrained variational inference of RNA velocity in the cell cycle.
+**VeloCycle** is a Python library for manifold-constrained variational inference of RNA velocity in the cell cycle.
 
 Check out the :doc:`usage` section for further information, including
 how to :ref:`installation` the project.
