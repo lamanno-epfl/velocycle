@@ -1,9 +1,9 @@
 VeloCycle - statistical RNA velocity inference for the cell cycle
 ===================================
 
-**VeloCycle** is a module for manifold-constrained variational inference of RNA velocity in the cell cycle. RNA velocity enables the recovery of dynamic information from single-cell RNA-sequencing data using information on unspliced and spliced RNA abundances [La Manno et al. Nature 2018](https://doi.org/10.1038/s41586-018-0414-6).
+**VeloCycle** is a module for manifold-constrained variational inference of RNA velocity in the cell cycle. RNA velocity enables the recovery of dynamic information from single-cell RNA-sequencing data using information on unspliced and spliced RNA abundances `La Manno et al. Nature 2018 <https://doi.org/10.1038/s41586-018-0414-6>`_.
 
-Many available RNA velocity algorithms can be fragile and rely on heuristics that lack statistical control. Likewise, the estimated vector field is not dynamically consistent with the traversed gene expression manifold. [VeloCycle](https://github.com/lamanno-epfl/velocycle/) is a generative model of RNA velocity that aims to address these problems by coupling velocity field and manifold estimation in a reformulated, unified framework, so as to coherently identify the parameters of an autonomous dynamical system. Focusing on the cell cycle, VeloCycle can be used to study gene regulation dynamics on one-dimensional periodic manifolds in a statistically robust manner.
+Many available RNA velocity algorithms can be fragile and rely on heuristics that lack statistical control. Likewise, the estimated vector field is not dynamically consistent with the traversed gene expression manifold. `VeloCycle <https://github.com/lamanno-epfl/velocycle/>`_ is a generative model of RNA velocity that aims to address these problems by coupling velocity field and manifold estimation in a reformulated, unified framework, so as to coherently identify the parameters of an autonomous dynamical system. Focusing on the cell cycle, VeloCycle can be used to study gene regulation dynamics on one-dimensional periodic manifolds in a statistically robust manner.
 
 VeloCycle can be used to ask fundamental biological questions using RNA velocity, including:
 - Is there a statstically significant non-zero cell cycle velocity in my dataset?
@@ -39,11 +39,11 @@ Contents
 Support
 --------
 
-This is the initial release of VeloCycle corresponding to our [preprint](https://www.biorxiv.org/content/10.1101/2024.01.18.576093v1): "Statistical inference with a manifold-constrained RNA velocity model uncovers cell cycle speed modulations". These software are still under continuous development.
+This is the initial release of VeloCycle corresponding to our `preprint <https://www.biorxiv.org/content/10.1101/2024.01.18.576093v1>`_: "Statistical inference with a manifold-constrained RNA velocity model uncovers cell cycle speed modulations". These software are still under continuous development.
 
-For questions and help requests, you can reach out to [Alex Lederer](mailto:alex.lederer@epfl.ch) and [Gioele La Manno](mailto:gioele.lamanno@epfl.ch). We are eager to hear your feedback and comments!
+For questions and help requests, you can reach out to `Alex Lederer <mailto:alex.lederer@epfl.ch>`_ and `Gioele La Manno <mailto:gioele.lamanno@epfl.ch>`_. We are eager to hear your feedback and comments!
 
-Please also visit our [GitHub page](https://github.com/lamanno-epfl/velocycle/). For notebooks and data files not used in the tutorials included in this repo, but used in the original publication, please see the following [Google Drive](https://drive.google.com/drive/folders/1G_VPLpD8trPBZ8F8h7cBzcPPkKPn2Fik?usp=drive_link) folder and [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE250148). In the future, files will be transferred from the Google Drive to Zenodo with a permanent DOI.
+Please also visit our `GitHub page <https://github.com/lamanno-epfl/velocycle/>`. For notebooks and data files not used in the tutorials included in this repo, but used in the original publication, please see the following `GoogleDrive <https://drive.google.com/drive/folders/1G_VPLpD8trPBZ8F8h7cBzcPPkKPn2Fik?usp=drive_link>` folder and `GEO <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE250148>`. In the future, files will be transferred from the Google Drive to Zenodo with a permanent DOI.
 
 
 Citation
