@@ -22,7 +22,7 @@ cycler==0.12.1
 debugpy==1.8.0
 decorator==5.1.1
 defusedxml==0.7.1
-docutils==0.20.1
+docutils==0.18.1 #0.20.1
 exceptiongroup==1.2.0
 executing==2.0.1
 fastjsonschema==2.19.0
