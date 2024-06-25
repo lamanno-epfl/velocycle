@@ -46,7 +46,7 @@ This is the initial release of VeloCycle corresponding to our `preprint <https:/
 
 For questions and help requests, you can reach out to `Alex Lederer <mailto:alex.lederer@epfl.ch>`_ and `Gioele La Manno <mailto:gioele.lamanno@epfl.ch>`_. We are eager to hear your feedback and comments!
 
-Please also visit our `GitHub page <https://github.com/lamanno-epfl/velocycle/>`. For notebooks and data files not used in the tutorials included in this repo, but used in the original publication, please see the following `GoogleDrive <https://drive.google.com/drive/folders/1G_VPLpD8trPBZ8F8h7cBzcPPkKPn2Fik?usp=drive_link>` folder and `GEO <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE250148>`. In the future, files will be transferred from the Google Drive to Zenodo with a permanent DOI.
+Please also visit our `GitHub page <https://github.com/lamanno-epfl/velocycle/>`_. For notebooks and data files not used in the tutorials included in this repo, but used in the original publication, please see the following `GoogleDrive <https://drive.google.com/drive/folders/1G_VPLpD8trPBZ8F8h7cBzcPPkKPn2Fik?usp=drive_link>`_ folder and `GEO <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE250148>`_. In the future, files will be transferred from the Google Drive to Zenodo with a permanent DOI.
 
 
 Citation
